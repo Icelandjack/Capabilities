@@ -1,22 +1,23 @@
 -- | This is a top-level module.
 -- The purpose of the module is to make effectful computations more explicit:
---
--- @
--- import Prelude hiding (putStrLn, getLine)
--- import Capabilities (run, Restr)
--- import Capabilities.IO 
---
--- myName :: 'Restr' 'TTY' ()
--- myName = do
---   name <- 'getLine'
---   'putStrLn' (\"Hello, my name is \" ++ name)
 -- 
--- main :: IO ()
--- main = 'run' printMyName
+-- A simple example of the library in use:
+-- 
 -- @
---
--- In the above example @TTY@ is a type synonym for @Stdin :+: Stdout@
--- meaning that only input and output is possible.
+--     {-\# LANGUAGE FlexibleContexts \#-}
+--     import Prelude hiding    (putStrLn, getLine)
+--     import Capabilities      (run, Restr, (:+:))
+--     import Capabilities.IO   (TTY, W, putStrLn, getLine)
+--     printMyName :: Restr (W :+: TTY) ()
+--     printMyName = do
+--       name <- getLine
+--       putStrLn (\"Hey my name is \" ++ name ++ \"!\")
+--     main :: IO ()
+--     main = run printMyName
+-- @
+-- 
+-- where @printMyName@ can /only/ write to files and read and write to
+-- handles (note that @TTY@ is a type synonym for @Stdin :+: Stdout@).
 
 module Capabilities (
   module Capabilities.IO,

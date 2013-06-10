@@ -1,46 +1,54 @@
-{-# LANGUAGE Trustworthy, DeriveFunctor, FlexibleContexts #-}
-{-# LANGUAGE TypeOperators, ScopedTypeVariables, DeriveDataTypeable #-}
+{-# LANGUAGE Trustworthy         #-}
+{-# LANGUAGE DeriveFunctor       #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DeriveDataTypeable  #-}
 
 module Capabilities.IO (
   -- * Teletype terminal
   TTY,
+  
   -- ** Reading from handle
   Stdin, hGetChar, getChar, getLine, hGetContents, getContents,
+  
   -- ** Write to handle
-  Stdout, hPutChar, putChar, putStrLn, print,
+  Stdout, hPutChar, putChar, putStr, putStrLn, print,
+  
   -- ** Reading and writing
   interact,
 
   -- * Opening and closing files
   RW,
+  
   -- ** Writing to files
   W, writeFile, appendFile,
+  
   -- ** Reading from files
-  readFile
+  R, readFile
+     
   ) where
 
 
 import Capabilities.Internals
 
-import qualified Prelude as P            (getChar, putChar, readFile, writeFile, appendFile)
+import qualified Prelude as P            (getChar, putChar, readFile,
+                                          writeFile, appendFile)
 import Prelude hiding                    (putChar, getChar, putStrLn, putStr,
-                                          getLine, readFile, print, writeFile, appendFile,
-                                          catch, getContents, interact)
+                                          getLine, readFile, print, writeFile,
+                                          appendFile, catch, getContents,
+                                          interact)
 
-import Control.Exception
+import Control.Exception                 (catch, SomeException)
 
 import System.Posix.Files                (FileStatus, getFileStatus)
-import qualified System.IO as IO         (hGetChar, hPutChar, hGetContents, stdin, stdout, stderr)
+import qualified System.IO as IO         (hGetChar, hPutChar, hGetContents,
+                                          stdin, stdout, stderr)
 import qualified System.Directory as Dir (getDirectoryContents,
                                           removeFile, removeDirectory,
                                           removeDirectoryRecursive)
 
-
-import GHC.IO.Handle.Types     (Handle)
-
-------------------------------------------------------------------------------
--- Privileged Actions
-------------------------------------------------------------------------------
+import GHC.IO.Handle.Types               (Handle)
 
 -- | Reading characters from a handle.
 data Stdin a
@@ -49,7 +57,11 @@ data Stdin a
   deriving Functor
 
 -- | Writing characters to a handle.
-data Stdout a = HPutChar Handle Char a      deriving Functor
+data Stdout a
+  = HPutChar Handle Char a
+  deriving Functor
+
+-- | Allows reading and writing to handle.
 type TTY = Stdin :+: Stdout
 
 instance Run Stdin where
@@ -150,7 +162,7 @@ writeFile skrá cont = liftRaw (Write skrá cont (Pure ()))
 appendFile :: (Functor f, W :<: f) => FilePath -> String -> Restr f ()
 appendFile skrá cont = liftRaw (Append skrá cont (Pure ()))
 
--- | Read/Writable
+-- | Capability to read and write to a file.
 type RW = R :+: W
 
 -- | File status

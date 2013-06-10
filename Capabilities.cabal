@@ -23,7 +23,7 @@ description:
   Programming, 18(4):423-436, 2008,
   <http://dx.doi.org/10.1017/S0956796808006758>) and uses the
   'compdata' package for compositional data types.
-
+  
 homepage:            https://github.com/Icelandjack/Capabilities
 license:             BSD3
 license-file:        LICENSE
