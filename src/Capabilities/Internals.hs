@@ -3,7 +3,9 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeOperators              #-}
 
+-- | Internal plumbing for capabilities.
 module Capabilities.Internals (
+  
   Restr(..), Run(..), run, inj, (:<:), (:+:)(Inl, Inr), liftRaw,
   Free(..)
   ) where

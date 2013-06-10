@@ -3,8 +3,27 @@
 
 name:                Capabilities
 version:             0.1.0.0
-synopsis:            Separation of effects on the type level, splitting the monolithic IO into capabilities with limited effects.
--- description:         
+synopsis:            Separate and limit effects of IO monad.
+category:            Security, Generics
+description:         
+  The /capabilities/ library is an effort to make effects in Haskell
+  more explicit by breaking the monolithic IO monad into smaller
+  composable parts called /capabilities/: a use case might be an
+  action that needs logging with current time but which should not be
+  allowed any other IO. This exists as a pleasant middle ground
+  between pure functions, the ST monad and the kitchen-sink IO
+  providing a more fine-grained approach to effectful
+  computations. Another benefit to this approach is security where a
+  computation should only have access to resources requires to
+  complete its job (/principle of least privilege/).
+
+  .
+  The implementation of the idea is based on Wouter Swierstra's
+  Functional Pearl /Data types a la carte/ (Journal of Functional
+  Programming, 18(4):423-436, 2008,
+  <http://dx.doi.org/10.1017/S0956796808006758>) and uses the
+  'compdata' package for compositional data types.
+
 homepage:            https://github.com/Icelandjack/Capabilities
 license:             BSD3
 license-file:        LICENSE
