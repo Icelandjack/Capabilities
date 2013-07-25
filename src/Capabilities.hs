@@ -8,10 +8,14 @@
 --     import Prelude hiding    (putStrLn, getLine)
 --     import Capabilities      (run, Restr, (:+:))
 --     import Capabilities.IO   (TTY, W, putStrLn, getLine)
+--     
+--     .
 --     printMyName :: Restr (W :+: TTY) ()
 --     printMyName = do
 --       name <- getLine
 --       putStrLn (\"Hey my name is \" ++ name ++ \"!\")
+--     
+--     .
 --     main :: IO ()
 --     main = run printMyName
 -- @

@@ -25,7 +25,10 @@ module Capabilities.IO (
   W, writeFile, appendFile,
   
   -- ** Reading from files
-  R, readFile
+  R, readFile,
+
+  -- * Information from files
+  Stat, stat
      
   ) where
 
@@ -43,7 +46,7 @@ import Control.Exception                 (catch, SomeException)
 
 import System.Posix.Files                (FileStatus, getFileStatus)
 import qualified System.IO as IO         (hGetChar, hPutChar, hGetContents,
-                                          stdin, stdout, stderr)
+                                          stdin, stdout)
 import qualified System.Directory as Dir (getDirectoryContents,
                                           removeFile, removeDirectory,
                                           removeDirectoryRecursive)
@@ -172,7 +175,7 @@ instance Run Stat where
   runAlgebra (Stat file io) = do
     status <- catch
               (Just `fmap` getFileStatus file)
-              (\(e :: SomeException) -> return Nothing)
+              (\(_ :: SomeException) -> return Nothing)
     io status
 
 stat :: (Functor f, Stat :<: f) => FilePath -> Restr f (Maybe FileStatus)
@@ -185,7 +188,7 @@ instance Run Dir where
   runAlgebra (Dir file io) = do
     cont <- catch
             (Just `fmap` Dir.getDirectoryContents file)
-            (\(e :: SomeException) -> return Nothing)
+            (\(_ :: SomeException) -> return Nothing)
     io cont
 
 getDirectoryContents :: (Dir :<: f) => FilePath -> Restr f (Maybe [FilePath])

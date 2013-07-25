@@ -3,7 +3,7 @@
 
 name:                Capabilities
 version:             0.1.0.0
-synopsis:            Separate and limit effects of IO monad.
+synopsis:            Separate and contain effects of IO monad.
 category:            Security, Generics
 description:         
   The /capabilities/ library is an effort to make effects in Haskell
@@ -29,13 +29,15 @@ license:             BSD3
 license-file:        LICENSE
 author:              Baldur Blöndal, Daniel Schoepe
 maintainer:          baldur@student.chalmers.se, daniel@schoepe.org
+tested-with:         GHC ==7.4.1
 -- copyright:           
 -- category:            
 build-type:          Simple
 cabal-version:       >=1.8
 
 library
-  exposed-modules:     Capabilities, Capabilities.IO, Capabilities.Internals
+  exposed-modules:     Capabilities, Capabilities.IO, Capabilities.Internals, System.Environment.Capabilities
   -- other-modules:       
   build-depends:       base ==4.5.*, unix ==2.5.*, directory ==1.1.*, free ==3.4.*, compdata ==0.6.*
   hs-source-dirs:      src
+  ghc-options:         -Wall
