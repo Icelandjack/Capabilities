@@ -1,27 +1,69 @@
 -- | This is a top-level module.
--- The purpose of the module is to make effectful computations more explicit:
+-- The purpose of the module is to make effectful computations more explicit.
 -- 
--- A simple example of the library in use:
+--   A simple example of the library in use:
 -- 
--- @
---     {-\# LANGUAGE FlexibleContexts \#-}
---     import Prelude hiding    (putStrLn, getLine)
---     import Capabilities      (run, Restr, (:+:))
---     import Capabilities.IO   (TTY, W, putStrLn, getLine)
---     
---     .
---     printMyName :: Restr (W :+: TTY) ()
---     printMyName = do
---       name <- getLine
---       putStrLn (\"Hey my name is \" ++ name ++ \"!\")
---     
---     .
---     main :: IO ()
---     main = run printMyName
--- @
+-- > {-# LANGUAGE FlexibleContexts    #-}
+-- > 
+-- > import Prelude hiding    (putStrLn, getLine)
+-- > import Capabilities      (run, Restr, (:+:))
+-- > import Capabilities.IO   (TTY, W, putStrLn, getLine)
+-- > 
+-- > printMyName :: Restr (W :+: TTY) ()
+-- > printMyName = do
+-- >   name <- getLine
+-- >   putStrLn ("Hey my name is " ++ name ++ "!")
+-- > 
+-- > main :: IO ()
+-- > main = run printMyName
 -- 
 -- where @printMyName@ can /only/ write to files and read and write to
 -- handles (note that @TTY@ is a type synonym for @Stdin :+: Stdout@).
+-- 
+-- Defining your own restricted actions works as follows: you want to
+-- outsource summing numbers from a file to an untrusted party but don't
+-- want them accessing your secret files. This is accomplished by creating
+-- a new data type @SecureRead a@ which checks the filepath against the
+-- string \"secret\". The function @secureRead@ cannot open such a file:
+-- 
+-- > {-# LANGUAGE FlexibleContexts    #-}
+-- > {-# LANGUAGE DeriveFunctor       #-}
+-- > {-# LANGUAGE TypeOperators       #-}
+-- > 
+-- > import qualified Prelude as P
+-- > import Data.List
+-- > import Prelude hiding (readFile, putStrLn)
+-- > 
+-- > import Capabilities
+-- > 
+-- > data SecureRead a = SecureRead FilePath (Maybe String -> a) deriving Functor
+-- > 
+-- > instance Run SecureRead where
+-- >   runAlgebra (SecureRead filepath io) 
+-- >     | "secret" `isInfixOf` filepath = io Nothing
+-- >     | otherwise                     = do content <- P.readFile filepath
+-- >                                          io (Just content)
+-- > 
+-- > secureRead :: (SecureRead :<: f) => FilePath -> Restr f (Maybe String)
+-- > secureRead filepath = liftRaw (SecureRead filepath Pure)
+-- > 
+-- > untrusted :: FilePath -> Restr (Stdout :+: SecureRead) (Maybe Int)
+-- > untrusted filepath = do
+-- >   outcome <- secureRead filepath
+-- >   let numbers = fmap (map read . lines) outcome
+-- >   case numbers of
+-- >     Just ns -> putStrLn ("Contents: " ++ show ns)
+-- >     Nothing -> putStrLn "Invalid filepath!"
+-- >   return (fmap sum numbers)
+-- 
+-- with
+-- 
+-- >>> run (untrusted "/tmp/file.txt")
+-- Contents: [10,20,30,40]
+-- Just 100
+-- >>> run (untrusted "/tmp/secret.txt")
+-- Invalid filepath!
+-- Nothing
 
 module Capabilities (
   module Capabilities.IO,
@@ -31,68 +73,3 @@ module Capabilities (
 
 import Capabilities.IO
 import Capabilities.Internals 
-  -- Config(..), Run(..), Restr(..), liftRaw, Free(Pure),
-  -- IsCapConfig(..), CapConfig(..),
-
-  -- ask, asks, r,
-  
-  -- run, run', run'',
--- ) where
-
-
--- import Control.Monad.Reader  (ReaderT(..), MonadReader, runReaderT, ask, asks)
--- import Data.Comp.Algebra     (Alg, AlgM)
--- import Data.Comp.Ops         (inj, (:<:), (:+:)(Inl, Inr))
--- import qualified Data.Map as M
--- import Data.Typeable
--- import Control.Monad.Free    (Free(..))
-
--- -- | Data type for the configuration storage.
--- data Config = Config (M.Map TypeRep CapConfig)
-
--- -- | Operations required from configurations.
--- class Typeable a => IsCapConfig a where
---     def :: a
-
--- -- | An existential wrapper to allow storing different configuration types.
--- data CapConfig = forall a. IsCapConfig a => CapConfig a
-
--- -- | The main restricted monad type.
--- newtype Restr f a = Restr (Free f a)
---   deriving (Monad, Functor)
-
--- -- | Type class to define the semantics of a capability
--- class Functor f => Run f where
---   runAlgebra :: Alg f (ReaderT Config IO a)
-
--- instance (Run f, Run g) => Run (f :+: g) where
---   runAlgebra (Inl x) = runAlgebra x
---   runAlgebra (Inr y) = runAlgebra y
-
--- foldRestr :: Functor f => (a -> b) -> (f b -> b) -> Free f a -> b
--- foldRestr pure imp (Pure x) = pure x
--- foldRestr pure imp (Free t) = imp (fmap (foldRestr pure imp) t)
-
--- runRawRestr :: Run f => Free f a -> ReaderT Config IO a
--- runRawRestr = foldRestr return runAlgebra
-
--- -- | Run an action in the Restr monad.
--- run :: Run f => Restr f a -> ReaderT Config IO a
--- run (Restr restr) = runRawRestr restr
-
--- -- | Run an action in the Restr monad using a given configuration.
--- run' :: Run f => Config -> Restr f a -> IO a
--- run' c action = (`runReaderT` c) $ run action
-
--- -- | Run an action with the default configuration.
--- run'' :: Run f => Restr f a -> IO a
--- run'' = run' (Config M.empty)
-
--- -- | Lift an action in a specific capability to Restr.
--- liftRaw :: (sub :<: f) => sub (Free f a) -> Restr f a
--- liftRaw = Restr . Free . inj
-
--- -- | Lift a monadic action to a Reader action.
--- r :: m a -> ReaderT r m a
--- r = ReaderT . const
-

@@ -3,20 +3,17 @@
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE TypeOperators       #-}
--- {-# LANGUAGE ScopedTypeVariables #-}
--- {-# LANGUAGE DeriveDataTypeable  #-}
 
 module System.Environment.Capabilities (
   -- * The environment type
-  Env, 
-  --
+  Env,
   getEnv,
   getArgs,
   getEnvironment,
   getProgName
 #if MIN_VERSION_base(4,6,0)
   getExecutablePath,
-  lookupEnv,
+  lookupEnv
 #endif
   ) where
 
@@ -33,16 +30,15 @@ data Env a
   deriving Functor
            
 instance Run Env where
-  runAlgebra (GetArgs io) = Env.getArgs >>= io
-  runAlgebra (GetProgName io) = Env.getProgName >>= io
-  runAlgebra (GetEnv key io) = Env.getEnv key >>= io
+  runAlgebra (GetArgs        io) = Env.getArgs        >>= io
+  runAlgebra (GetProgName    io) = Env.getProgName    >>= io
+  runAlgebra (GetEnv key     io) = Env.getEnv key     >>= io
   runAlgebra (GetEnvironment io) = Env.getEnvironment >>= io
 
 -- | Computation 'getArgs' returns a list of the program's command
 -- line arguments (not including the program name).
 getArgs :: (Env :<: f) => Restr f [String]
 getArgs = liftRaw (GetArgs Pure)
-
 
 {-|
 Computation 'getProgName' returns the name of the program as it was
