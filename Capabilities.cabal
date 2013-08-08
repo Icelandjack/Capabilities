@@ -35,6 +35,10 @@ tested-with:         GHC ==7.4.1
 build-type:          Simple
 cabal-version:       >=1.8
 
+source-repository head
+  type:     git
+  location: git://github.com/IcelandJack/Capabilties.git
+
 library
   exposed-modules:     Capabilities, Capabilities.IO, Capabilities.Internals, System.Environment.Capabilities
   -- other-modules:       
