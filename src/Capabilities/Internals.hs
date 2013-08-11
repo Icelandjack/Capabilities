@@ -31,15 +31,10 @@ class Functor f => Run f where
 -- | Lifts @Run@ so that it works with @(Run f, Run g) => Run (f :+: g)@.
 $(derive [liftSum] [''Run])
 
--- | A fold on restriction.
-foldRestr :: Functor f => (a -> b) -> (f b -> b) -> Free f a -> b
-foldRestr pure _   (Pure x) = pure x
-foldRestr pure imp (Free t) = imp (fmap (foldRestr pure imp) t)
-
 -- | Runs a restricted computation with return type @a@ turning it
 -- into an IO operation with return type @a@.
 run :: Run f => Restr f a -> IO a
-run (Restr restr) = foldRestr return runAlgebra restr
+run (Restr restr) = iterM runAlgebra restr
 
 -- | Lift an action in a specific capability to Restr.
 liftRaw :: (sub :<: f) => sub (Free f a) -> Restr f a
